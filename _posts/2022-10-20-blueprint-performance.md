@@ -3,7 +3,7 @@ layout: single
 title: "Performance guideline for Blueprints and making sense of Blueprint VM."
 excerpt: In this post I'll go through common myths about Blueprint performance bottlenecks and explain real logic behind it's virtual machine.
 header:
-  teaser: /assets/images/per-post/blueprint-performance/bluemans-bp-horror.jpg
+  teaser: /assets/images/per-post/blueprint-performance/bluemans-bp-horror.png
 author: Meta
 category: Videogames Development
 tags:
