@@ -197,7 +197,7 @@ Also don't forget the red square pin you are plugging an event to `Set Timer by 
 
 The reason people say "cast is expensive" is, when you *reference* something in your *blueprint class*, engine automatically loads those references along with your blueprint. **[You should prefer using soft references and design your systems properly to avoid loading half of the game with a single blueprint class.](https://youtu.be/j6mskTgL7kU?t=2364)** I've seen "blueprint function libraries" that has reference(s) to boss characters of the game in *input parameters* of functions, and end up loading at least 2GB of data to memory for no reason. 🤦‍♂️
 
-## 4: Do not use cast, its expensive
+## 4: Prefer interfaces instead of casting 
 
 Interfaces are some sort of "[multiple inheritance](https://en.wikipedia.org/wiki/Multiple_inheritance)" thing and their existence is not because to replace casts. 
 
