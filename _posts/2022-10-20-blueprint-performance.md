@@ -30,6 +30,10 @@ If you go through `UnrealTypes.h`, `CodeGenerator.h` and `Object.h` in source co
 
 Also another proof, a slideshow from Epic, presented in 2014 to developers:
 
+![Slideshow from 2014.](/assets/images/per-post/blueprint-performance/ue-tech-debt-sucks.png)
+
+[Click me for source](https://www.slideshare.net/GerkeMaxPreussner/east-coast-devcon-2014-game-programming-in-ue4-game-framework)
+
 ## Compiled languages vs. interpreted languages
 
 Compiled languages (C/C++, Rust, Erlang) are converted into machine code directly, so they end up being faster than interpreted languages by skipping the "interpretation" step (which also introduces many other steps, as every language has a different way to interpret the code), but they have a "build" step that happens *offline*. Which means developer has to compile the code everytime when they make a change before running the code.
