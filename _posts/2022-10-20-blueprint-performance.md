@@ -32,7 +32,7 @@ Also another proof, a slideshow from Epic, presented in 2014 to developers:
 
 ![Slideshow from 2014.](/assets/images/per-post/blueprint-performance/ue-tech-debt-sucks.png)
 
-[Click me for source](https://www.slideshare.net/GerkeMaxPreussner/east-coast-devcon-2014-game-programming-in-ue4-game-framework)
+[Click to me for source](https://www.slideshare.net/GerkeMaxPreussner/east-coast-devcon-2014-game-programming-in-ue4-game-framework)
 
 ## Compiled languages vs. interpreted languages
 
