@@ -72,7 +72,7 @@ So since it's an embedded language, it can interact with Unreal Engine's existin
 
 If you ignore everything about blueprints, you can still see Unreal Engine has a UObject framework with an abstract reflection system that you can build anything on top of it. So to interact with Unreal Engine, you need to build a scripting language that can access *that* framework. And that's what Blueprints system is doing. Blueprints VM, in fact, allows you to implement *any other* scripting language on top of it's abstract implementation. [You can see Hazelight's AngelScript implementation as an example](https://angelscript.hazelight.se/).
 
-Understanding this fact will help you easier what I mean by a "machine" that keep doing calls to C++.
+Understanding this fact will help you understand what I mean by a "machine" that keep doing calls to C++.
 
 # Performance of Blueprints.
 
