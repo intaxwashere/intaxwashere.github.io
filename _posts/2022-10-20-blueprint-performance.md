@@ -20,7 +20,7 @@ You can see many people telling these innocent lies all over the place:
 
 and sadly there are many projects following those advices, especially the ones implement 100% Blueprints without any C++ code. So over the time I ended up developing a motivation to research how Blueprints works behind the scenes, and decided to write an article about it. So today we are going to go through those common myths and explain why they are incorrect, and analyze *actual* problems of Blueprint system. 😎
 
-But before going through myths, let's examine how Blueprint virtual machine actually works behind the scenes, so we can reason logic behind it.
+But before going through myths, let's examine how Blueprints virtual machine actually works behind the scenes, so we can reason logic behind it.
 
 # Understanding the infastracture of Blueprint system.
 
@@ -63,13 +63,14 @@ Blueprints is actually an *embedded* scripting language like Lua. It has a deep 
 - The more complex the language, the more it's difficult to embed it to an application. Lua is a great example for easy-to-embed languages. It's lightweight as possible and very easy to interact with.
 
 - Blueprints specifically created for Unreal Engine, that you can expose data to Blueprint system from C++ code with reflection system and Blueprint system can call exposed C++ functions and can interact with other reflected types.
-- Blueprints VM, in fact, allows you to implement *any other* scripting language on top of it's abstract implementation. You can see Hazelight's AngelScript implementation as an example.
 
 ### So what does that mean?
 
 Like every other language, Blueprints has a specific goal; and it's to make developer's life easier. Epic Games specifically focused on helping artists to involve into the development progress by having a "visual" scripted language. They wanted to provide developers an ecosystem that they can both use C++ and their new visual scripting system efficiently.
 
 So since it's an embedded language, it can interact with Unreal Engine's existing frameworks, that's why I always tend to think *at most simple level* it's actually nothing but a system that keeps doing calls to C++ side of the engine. 
+
+If you ignore everything about blueprints, you can still see Unreal Engine has a UObject framework with an abstract reflection system that you can build anything on top of it. So to interact with Unreal Engine, you need to build a scripting language that can access *that* framework. And that's what Blueprints system is doing. Blueprints VM, in fact, allows you to implement *any other* scripting language on top of it's abstract implementation. [You can see Hazelight's AngelScript implementation as an example](https://angelscript.hazelight.se/).
 
 Understanding this fact will help you easier what I mean by a "machine" that keep doing calls to C++.
 
