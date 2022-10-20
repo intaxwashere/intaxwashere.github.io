@@ -10,7 +10,7 @@ tags:
   - Blueprints
 ---
 
-You can see many people telling those innocent lies all over the place:
+You can see many people telling these innocent lies all over the place:
 
 - Avoid tick, it's expensive
 - Use timers instead of tick
@@ -94,7 +94,7 @@ There are two type of Blueprint functions:
 
 ### Impure Nodes
 
-![A pure function.](/assets/images/per-post/blueprint-performance/pure-node.png)
+![An impure function.](/assets/images/per-post/blueprint-performance/impure-node.png)
 
 - Impure nodes are blue nodes that has an input and output execution pins. 
 - When impure nodes are evaluated, we can think like their output params are also instanced as local variables in the blueprint graph. So each time you call an impure function, Blueprint VM will create (hidden) local variables for each output parameter. So if any of the output params are connected to one of the next function's input parameters, BP VM will access to created hidden local variable and use it.
@@ -102,7 +102,7 @@ There are two type of Blueprint functions:
 
 ### Pure nodes
 
-![A pure function.](/assets/images/per-post/blueprint-performance/impure-node.png)
+![A pure function.](/assets/images/per-post/blueprint-performance/pure-node.png)
 
 - Pure nodes are green nodes that does not have any input or output execution pins.
 - When a pure node evaluated, they are being (re)called each time they are plugged to an input parameter of any function.
