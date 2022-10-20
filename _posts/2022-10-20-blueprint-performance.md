@@ -3,7 +3,7 @@ layout: single
 title: "Performance guideline for Blueprints and making sense of Blueprint VM."
 excerpt: In this post I'll go through common myths about Blueprint performance bottlenecks and explain real logic behind it's virtual machine.
 header:
-  teaser: /assets/images/per-post/simple-rewinding/thumb.jpg
+  teaser: /assets/images/per-post/blueprint-performance/bluemans-bp-horror.jpg
 author: Meta
 category: Videogames Development
 tags:
@@ -94,7 +94,7 @@ There are two type of Blueprint functions:
 
 ### Impure Nodes
 
--- insert impure node image --
+![A pure function.](/assets/images/per-post/blueprint-performance/pure-node.png)
 
 - Impure nodes are blue nodes that has an input and output execution pins. 
 - When impure nodes are evaluated, we can think like their output params are also instanced as local variables in the blueprint graph. So each time you call an impure function, Blueprint VM will create (hidden) local variables for each output parameter. So if any of the output params are connected to one of the next function's input parameters, BP VM will access to created hidden local variable and use it.
@@ -102,7 +102,7 @@ There are two type of Blueprint functions:
 
 ### Pure nodes
 
--- insert pure node image --
+![A pure function.](/assets/images/per-post/blueprint-performance/impure-node.png)
 
 - Pure nodes are green nodes that does not have any input or output execution pins.
 - When a pure node evaluated, they are being (re)called each time they are plugged to an input parameter of any function.
@@ -126,10 +126,6 @@ Macros work best when:
 - When you have latent tasks but you need to use same code multiple times over the code.
 - Very simple actions like checking validity of something or checking a condition of something. (i.e. things like IsValid() macro and HasAuthority() macro)
 - [Flow control utils](https://landelare.github.io/2022/04/29/reverse-flip-flop.html)
-
-I have a very few macros in my project, and most common one is this one:
-
--- insert macro image --
 
 ## How input/output params of functions are being set behind the scenes.
 
@@ -160,7 +156,7 @@ And since every output param (and unless you expliciptly mark your input refs as
 
 For example, a while ago someone posted this image in reddit and people thought of what would happen if you actually run this function:
 
--- insert image here --
+![A pure function.](/assets/images/per-post/blueprint-performance/too-many-params.png)
 
 Before seeing the overhead of the function, you would see the overhead of your CPU trying to copy values for input params and overhead of instantiating them as (hidden) variables. 
 
