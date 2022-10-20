@@ -16,15 +16,15 @@ minimal_mistakes_skin    : "dark" # "air", "aqua", "contrast", "default", "dirt"
 
 # Site Settings
 locale                   : "en-US"
-title                    : "Devtricks"
+title                    : "Intax's Blog"
 title_separator          : "-"
 subtitle                 : # site tagline that appears below site title in masthead
-name                     : "vorixo"
-description              : "Programming and game development blog"
+name                     : "intax"
+description              : "Unreal Engine Game Development Blog"
 url                      : # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
-teaser                   : "/assets/images/site-teaser.png"
+teaser                   : # "/assets/images/site-teaser.png"
 logo                     : # path of logo image to display in the masthead, e.g. "/assets/images/88x88.png" - This appears at the left of devtricks
 masthead_title           : # overrides the website title displayed in the masthead, use " " for no title
 breadcrumbs              : true # true, false (default)
@@ -101,10 +101,10 @@ analytics:
 
 # Site Author
 author:
-  name             : "Alvaro Jover-Alvarez"
+  name             : "Intax"
   avatar           : "/assets/images/Meta.jpg"
-  bio              : "Network Programmer @ CI Games"
-  location         : # "Somewhere"
+  bio              : "Unreal Engine game programmer."
+  location         : "Türkiye"
   email            :
   links:
     - label: "Email"
@@ -131,13 +131,13 @@ footer:
   links:
     - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/vorixo"
+      url: "https://twitter.com/intaxeren"
     - label: "Facebook"
       icon: "fab fa-fw fa-facebook-square"
       # url:
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/vorixo"
+      url: "https://github.com/intaxwashere"
     - label: "GitLab"
       icon: "fab fa-fw fa-gitlab"
       # url:
