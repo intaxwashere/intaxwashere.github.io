@@ -148,8 +148,15 @@ In a regular Blueprint class, every graph except the default event graph comes w
 Each graph can have different rules; they can be read-only, they can allow or disable variables, timelines, latent tasks inside of them:
 
 - You can not add a new *event node* to a function graph, and you can not use latent nodes like `delay` inside of it. 
-- `Math Expression` graphs are a good example of read-only graphs.
-- Behavior Tree Graphs, Material Editor Graphs has their own very different rules than the usual Blueprint class graphs.
+- `Math Expression` graphs and Reference Viewer tool are a good example of read-only graphs.
+
+### Every graph is a different realm.
+
+- Behavior Tree Graph is a front-end user only graph that is actually a C++ container behind the scenes, at most simple level. 
+- Material Editor Graph's node is collected by engine and converted into HLSL code whenever you compile it. 
+- Animation graphs provide a Finite State Machine system that works entirely different than other graphs.
+- I don't know about how sound editor graphs work, but I wouldn't be surprised if it's also something similar to Behavior Tree graphs.
+- **Blueprint Graphs are only graphs that are converted into bytecode.**
 
 So we understand that a *graph* is something Unreal Engine framework provides developers to build things on top of it, to create a visual, node-based scripting system.
 
