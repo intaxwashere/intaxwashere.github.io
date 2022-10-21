@@ -153,10 +153,10 @@ Each graph can have different rules; they can be read-only, they can allow or di
 ### Every graph is a different realm.
 
 - Behavior Tree Graph is a front-end user only graph that is actually a C++ container behind the scenes, at most simple level. 
-- Material Editor Graph's node is collected by engine and converted into HLSL code whenever you compile it. 
-- Animation graphs provide a Finite State Machine system that works entirely different than other graphs.
-- I don't know about how sound editor graphs work, but I wouldn't be surprised if it's also something similar to Behavior Tree graphs.
-- **Blueprint Graphs are only graphs that are converted into bytecode.**
+- Nodes added to Material Editor's Graph are collected by engine and converted into HLSL code whenever you press "Apply" button. 
+- Animation graphs provide a Finite State Machine system that works entirely different than other graphs, and it has a feature to run on another thread if you design it correctly.
+- I don't know about how Sound Editor Graphs work, but I wouldn't be surprised if it's also something similar to Behavior Tree Graphs.
+- **Blueprint Graphs are only graphs that are converted into bytecode.** 
 
 So we understand that a *graph* is something Unreal Engine framework provides developers to build things on top of it, to create a visual, node-based scripting system.
 
