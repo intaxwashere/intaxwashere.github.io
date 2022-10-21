@@ -137,13 +137,32 @@ There are two type of Blueprint functions:
 - **"Get" nodes of variables are also pure functions.**
 - **Use pure nodes with caution when you are in a loop body. Prefer to cache variables before running a loop and accessing the cached variables instead.**
 
-## Macros, Functions and Collapsed Graphs in Blueprint.
+## Graphs
 
-Macros are special nodes that have their context copied & pasted into the graph *during the Blueprint compilation process.* They introduce two problems:
+There is a concept of "graphs" in the Blueprint system. 
+
+A graph is simply `UEdGraph` class in the Unreal Engine. [FlowGraph](https://github.com/MothCocoon/FlowGraph/) is a good open source plugin to learn about how to create custom graph editors in Unreal Engine.
+
+In a regular Blueprint class, every graph except the default event graph comes with the editor when you open it, is *editor-only*. During compilation, the Blueprint system combines every graph into single *Ubergraph*. 
+
+Each graph can have different rules; they can be read-only, they can allow or disable variables, timelines, latent tasks inside of them:
+
+- You can not add a new *event node* to a function graph, and you can not use latent nodes like `delay` inside of it. 
+- `Math Expression` graphs are a good example of read-only graphs.
+- Behavior Tree Graphs, Material Editor Graphs has their own very different rules than the usual Blueprint class graphs.
+
+So we understand that a *graph* is something Unreal Engine framework provides developers to build things on top of it, to create a visual, node-based scripting system.
+
+But Blueprint graphs has some interesting features we need to talk about to dive into side-effects of the Blueprints system.
+
+### Collapsed Graphs and Macros
+
+Collapsed Graphs and Macros behave very similar, except macros can be instanced multiple times like functions (i.e. you can copy paste it safely around the graph). 
+
+A collapsed graph is just a user-facing utility that helps developers to organize their graphs better. Meanwhile macros are special nodes that have their context copied & pasted into the graph *during the Blueprint compilation process.* But they introduce two problems:
 
 - They are slowing down the compilation process, which may be neglible unless you have hundreds or thousands of them.
-- They can hide nodes behind a single node, so the Blueprint graph might look cute and innocent but it might be a gigantic sphagetti of nodes behind the scenes.
-- A great example for this is `For Each Loop` macro. **The reason looping containers expensive in Blueprints is because the "for loop" is actually a set of Blueprint nodes and if you loop something too many times, the BP VM ends up evaluating too many nodes for a simple action.** For this reason, if you have a bottleneck in a specific Blueprint graph, it's always a good idea to convert Blueprint loops into C++ loops.
+- They can hide nodes behind a single node, so the Blueprint graph might look cute and innocent but it might be a gigantic sphagetti of nodes behind the scenes. A great example for this is `For Each Loop` macro. **The reason looping containers expensive in Blueprints is because the "for loop" is actually a set of Blueprint nodes and if you loop something too many times, the BP VM ends up evaluating too many nodes for a simple action.** For this reason, if you have a bottleneck in a specific Blueprint graph, it's always a good idea to convert Blueprint loops into C++ loops.
 
 See behind the scenes of `For Each Loop` and `Gate` macros:
 
@@ -154,6 +173,10 @@ Macros work best when:
 - You have latent tasks but you need to use same code multiple times elsewhere.
 - Very simple actions like checking validity of something or checking a condition of something. (i.e. things like IsValid() macro and HasAuthority() macro)
 - [Flow control utils](https://landelare.github.io/2022/04/29/reverse-flip-flop.html)
+
+Collapsed graphs works best when:
+
+- When you have a complex event graph and you need to make it more readable and split code into pieces.
 
 ## How input/output params of functions are being set behind the scenes.
 
@@ -189,6 +212,7 @@ Also notice how pass-by-ref argument pins do not allow you to set a "default val
 ![image](https://user-images.githubusercontent.com/11199820/197089793-7f595383-f420-45b5-8523-4cc07ff659a1.png)
 
 When calling the function, you can see the pass by reference pin is now a diamond which signifies that this variable needs to be passed by reference. Which also means that you can't "set" it's value to anything, **you have to give it pass it a variable that exists!**
+
 ![image](https://user-images.githubusercontent.com/11199820/197089621-7c1d6b6e-c85f-4a24-ace9-337519df0ddd.png)
 
 With that being said, if the passed-by-ref variable is changed **within** the function, that variable will be whatever it's value was changed to outside of that function.
