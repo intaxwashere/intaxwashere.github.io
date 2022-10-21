@@ -5,8 +5,7 @@ title: About Me
 author_profile: true
 ---
 
-This page is currently under construction, please visit [this one](https://vorixo.github.io/) instead!
+This page is currently under construction.
 
-I am a gameplay programmer that likes to design and program coherent-cohesive systems of any type of game. 
-Usually with Unreal Engine 5, however, I am always open to learn new technology.
+TL;DR I'm a person hanging out at Unreal Slackers a lot and I like asking stupid questions to smart people and that's usually how I learn things. And whenever I learn something interesting, I post it here if I have free time to do it. 😛
 
