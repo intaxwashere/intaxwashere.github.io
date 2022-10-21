@@ -10,6 +10,8 @@ tags:
   - Blueprints
 ---
 
+Thanks a lot to [Bry](https://www.youtube.com/c/brynertoma) for contributing to this article.
+
 You can see many people telling these innocent lies all over the place:
 
 - Avoid tick, it's expensive
