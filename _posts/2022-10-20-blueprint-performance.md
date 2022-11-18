@@ -83,7 +83,7 @@ The Blueprint System is actually an *embedded* scripting language like Lua. It h
 
 Like every other language, the Blueprint System has a specific goal in mind; make the developer's life easier. Epic Games main focus was to involve artists into the development process by having a "visual" scripted language. Visuals, something artists are really good at. They wanted to provide developers an ecosystem where they can both use C++ and their new visual scripting system efficiently.
 
-So since it's an embedded language, it can interact with Unreal Engine's existing frameworks and at the simplest level, that's exactly what it's doing. That's why I always tend to think it's nothiung but a system that simply calls C++ code.
+So since it's an embedded language, it can interact with Unreal Engine's existing frameworks and at the simplest level, that's exactly what it's doing. That's why I always tend to think it's nothing but a system that simply calls C++ code.
 
 If you ignore everything about Blueprints, you can still see Unreal Engine has a UObject framework with an abstract reflection system that you can build on top of. So to interact with Unreal Engine, you need to build a scripting language that can access *that* framework. And that's what Blueprints are doing. The Blueprint VM, in fact, allows you to implement *any other* scripting language on top of it's abstract implementation. [You can see Hazelight's AngelScript implementation as an example](https://angelscript.hazelight.se/).
 
@@ -97,7 +97,7 @@ The Blueprint System has "direct" and "indirect" overheads.
 
 ## Function calls (node evaluation). 
 
-Everytime the Blueprint VM evaluates a function, it just runs a code to invoke the a C++ function. And even if you have a function/event you created in Blueprint graph, you just end up calling functions declared in C++ inside of it. When you start up a fresh project in launcher, every existing function you can add to blueprint graph is defined in C++. The Events that are automatically added to graph when you create a new Blueprint class, like `BeginPlay`, `Tick`, `OnBeginOverlap` are also actually C++ functions called by engine.
+Everytime the Blueprint VM evaluates a function, it just runs a code to invoke the C++ function. And even if you have a function/event you created in Blueprint graph, you just end up calling functions declared in C++ inside of it. When you start up a fresh project in launcher, every existing function you can add to blueprint graph is defined in C++. The Events that are automatically added to graph when you create a new Blueprint class, like `BeginPlay`, `Tick`, `OnBeginOverlap` are also actually C++ functions called by engine.
 
 [Every function "call" has the same exact overhead](https://youtu.be/j6mskTgL7kU?t=1144). Behind the scenes, Blueprints VM runs same code to evaluate every node in the graph.
 
@@ -113,7 +113,7 @@ Below, we are going to talk about "indirect" overhead of Blueprints.
 
 ## Pure nodes can be dangerous, because they are evaluated each time they're plugged to an input parameter.
 
-There are two type of Blueprint functions: 
+There are two types of Blueprint functions: 
 
 - Impure nodes
 - Pure nodes
@@ -205,7 +205,7 @@ you would copy 4 bytes of value from `myValue` to `myNewValue`. And this is *per
 
 ```c
 FVector vectorArray[4096];
-Fvector newVectorArray[4096] = vectorArray
+FVector newVectorArray[4096] = vectorArray
 ```
 
 You would copy around 50 kilobytes of data (12 bytes * 4096) which, again, is most likely still going to be fine for a modern CPU unless you repeat this action multiple times at once. Blueprints does this all over the place and hides this operation from the front-end user interface.
@@ -218,7 +218,7 @@ Also notice how pass-by-ref argument pins do not allow you to set a "default val
 
 ![image](https://user-images.githubusercontent.com/11199820/197089793-7f595383-f420-45b5-8523-4cc07ff659a1.png)
 
-When calling the function, you can see the pass by reference pin is now a diamond which signifies that this variable needs to be passed by reference. Which also means that you can't "set" it's value to anything, **you have to give it pass it a variable that exists!**
+When calling the function, you can see the pass by reference pin is now a diamond which signifies that this variable needs to be passed by reference. Which also means that you can't "set" it's value to anything, **you have to pass it a variable that exists!**
 
 ![image](https://user-images.githubusercontent.com/11199820/197089621-7c1d6b6e-c85f-4a24-ace9-337519df0ddd.png)
 
@@ -267,7 +267,7 @@ The reason people say "cast is expensive" is, when you *reference* something in 
 
 Interfaces are some sort of "[multiple inheritance](https://en.wikipedia.org/wiki/Multiple_inheritance)" thing and their existence is not meant to replace casts. 
 
-An interface is a description of the actions that an object can do. for example when you flip a light switch, the light goes on, you don't care how, just that it does. One actor might implement it _this_ way, another actor might implement in _that_ way. This is where interfaces are useful.
+An interface is a description of the actions that an object can do. For example when you flip a light switch, the light goes on, you don't care how, just that it does. One actor might implement it _this_ way, another actor might implement in _that_ way. This is where interfaces are useful.
 
 In fact, behind the scenes the engine actually does a cast to access the interface in given object. So people who are using interfaces because of this "Do not use cast" myth are actually not ending up avoiding any cast.
 
