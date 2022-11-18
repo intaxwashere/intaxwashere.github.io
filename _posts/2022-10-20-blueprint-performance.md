@@ -10,7 +10,7 @@ tags:
   - Blueprints
 ---
 
-Thanks a lot to [Bry](https://www.youtube.com/c/brynertoma) for contributing to this article.
+Thanks a lot to [Bry](https://www.youtube.com/c/brynertoma) and [WizardCell](https://wizardcell.com/) for contributing to this article.
 
 You can see many people telling these innocent lies all over the place:
 
