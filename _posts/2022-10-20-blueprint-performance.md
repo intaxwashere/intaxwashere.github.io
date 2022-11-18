@@ -41,9 +41,9 @@ Also another proof, a slideshow from Epic, presented in 2014 to developers:
 Since Blueprints is an interpreted language, we need to understand it's difference from others:
 
 - Compiled languages (C/C++, Rust, Erlang) are converted into machine code directly, so they end up being faster than interpreted languages by skipping the "interpretation" step (which also introduces many other steps, as every language has a different way to interpret the code), but they have a "build" step that happens *offline*. Which means developer has to compile the code everytime when they make a change before running the code.
-- Interpreted languages (Java, Python, Blueprints) are not compiled into machine code but they include an intermediate program (interpreter) that runs the code *line by line* and executes in different ways. Some interpreters like C#'s and Lua's Just-In-Time compiler converts high-level human readable code into low-level machine code at *runtime*, meanwhile some interpreters like Blueprint's and Java's generate a bytecode before running the code and executes the code going through bytecodes.
+- Interpreted languages (Java, Python, Blueprints) are not compiled into machine code directly but and include an intermediate program (interpreter) that runs the code *line by line* and executes it in different ways.
 
-Basically compiled languages introduce a program named "compiler" that translates human readable code into machine code *before* you execute it, and interpreters introduce another concept named "interpreter" and converts your code into something else that main program can execute *at runtime*.
+Basically compiled languages introduce a program named "compiler" that translates human readable code into machine code *before* you execute it, and interpreters introduce another concept named "interpreter" and converts your code into something else that main program can execute *at runtime*. 
 
 ### How are Blueprints interpreted?
 
@@ -247,21 +247,25 @@ But this should never be a concern, because I actually profiled the performance 
 
 As explained above, the only direct overhead of Blueprints system is the function invoking overhead. A simple tick event won't destroy your performance on it's own, but the nodes connected to your tick event will run every frame and memory access to instructions can end up being way slower than C++ code. **Unless you are going to ship to low-end hardware like a PS4, you do not need to avoid tick in every situation.** Always profile your game in shipping config at the lowest hardware target you plan to release on.
 
-I wanted to provide data about overhead of executing a single empty tick node, but I don't have access to any low-end hardware to profile against. However, for what it's worth, I have *heard* calling around 300 empty tick nodes in a single frame costs around 1ms per frame. One way or another, try to never believe anything anyone says - except everything I just said in this post - unless you profile it yourself to see the performance with your own eyes.
+I wanted to provide data about overhead of executing a single empty tick node on lower hardware, but I don't have access to any low-end hardware to profile against. However, for what it's worth, I have *heard* calling around 300 empty tick nodes in a single frame costs around 1ms per frame. One way or another, try to never believe anything anyone says - except everything I just said in this post - unless you profile it yourself to see the performance with your own eyes.
 
 ## 2: Use timers instead of tick.
 
-[No.](https://www.reddit.com/r/unrealengine/comments/wq7cke/comment/ikltr2r/?utm_source=share&utm_medium=web2x&context=3)
+[No. Click to see why.](https://www.reddit.com/r/unrealengine/comments/wq7cke/comment/ikltr2r/?utm_source=share&utm_medium=web2x&context=3)
 
 Also don't forget the red square pin you are plugging an event to `Set Timer by Event` is a dynamic delegate (event dispatcher, in BP terms) and it's expensive to call. 100 BP ticks vs 100 Dynamic Delegate invoking will end up in a result dynamic delegates causing more of overhead than BP ticks. 
 
 `Set Timer by Function Name` is even worse because engine will go through all blueprint callable events of your class to find the given function with the name so there is additional lookup time overhead compared to `Set Timer by Event`.
+
+Though that doesn't mean you shoud always prefer tick for everything. There are times timers can be useful against tick, but you should not try to replace tick function with timers for performance reasons.
 
 ## 3: Do not use cast, its expensive
 
 "Cast" itself is nothing but a fancy loop that goes through class hierachy data in reflection system. If the given class type is found in the loop, the engine does a C-style cast to given type (which is... literally free for CPU to execute) and returns a pointer to it.
 
 The reason people say "cast is expensive" is, when you *reference* something in your *blueprint class*, the engine automatically loads those references along with your Blueprint into memory. **[You should prefer using soft references and design your systems properly to avoid loading half of the game with a single blueprint class.](https://youtu.be/j6mskTgL7kU?t=2364)** I've seen "blueprint function libraries" that have reference(s) to boss characters of the game in the *input parameters* of their functions, and end up loading at least 2GB of data into memory for absolutely no reason. 🤦‍♂️
+
+So try not to have hard references to memory intensive blueprints in your graph instead of avoiding cast.
 
 ## 4: Prefer interfaces instead of casting 
 
