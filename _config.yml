@@ -78,12 +78,12 @@ naver_site_verification  :
 
 # Social Sharing
 twitter:
-  username               : "vorixo"
+  username               : "intaxeren"
 facebook:
   username               :
   app_id                 :
   publisher              :
-og_image                 : "/assets/images/site-teaser.png"
+og_image                 : #"/assets/images/site-teaser.png"
 # For specifying social profiles
 # - https://developers.google.com/structured-data/customize/social-profiles
 social:
@@ -115,13 +115,13 @@ author:
       # url: "https://your-website.com"
     - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/vorixo"
+      url: "https://twitter.com/intaxeren"
     - label: "Facebook"
       icon: "fab fa-fw fa-facebook-square"
       # url: "https://facebook.com/"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/vorixo"
+      url: "https://github.com/intaxwashere"
     - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
       # url: "https://instagram.com/"
