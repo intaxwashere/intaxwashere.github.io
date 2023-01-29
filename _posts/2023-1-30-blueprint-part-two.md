@@ -98,7 +98,8 @@ But of course, there are things I can add. From most obvious one to possibly les
 - Output params are copied everytime magnificently :sparkles: and there is no way to avoid it - except if it's an `Array Get (ref)` node.
 - Almost more than half of the default nodes expand to multiple nodes during compilation and single node generates way more than instructions than how it looks in the graph. (specifically async actions cause too many expansions)
 - Each time a node is executed output params must be looped and initialized to their values
-- VM back end is a branchy horr and full of Unreal-specific implementations 
+- VM back end is a branchy horror and full of Unreal-specific implementations 
+- [UnrealScript (UE3) was also very slow](https://twitter.com/TimSweeneyEpic/status/1211538643426447360?s=20&t=LrTG5-G2WZlnGHXbinZUgA).
 
 There are.. *some sort of* constant folding optimization happens with `InlineGeneratedValue` logic - which makes Math Expressions run faster, but it's very limited. Also there is a fast-call optimization exist which is described as `Call Math` in the backend but it happens for non-math related nodes too. 
 
