@@ -67,8 +67,6 @@ For example, lets say you have a node like this:
 
 ![Printing the Falcon's launch codes in editor.](/assets/images/per-post/blueprint-performance/launch-code-print.png)
 
-(put a print string connected with pure nodes and self context)
-
 Before "Null Object" to be accessed, Blueprint VM **must** check if it's pointing to a valid object or not. Because unlike C++, it doesn't let you crash your project intentionally and lets you continue executing your logic. But on the other hand, it also **must** provide a value for the `In String` pin. 
 
 Basically, in this case, whenever Blueprint VM accesses to an object value, it runs a fail-safe logic to not crash (see `DEFINE_FUNCTION(UObject::execLetObj)` and `DEFINE_FUNCTION(UObject::execSelf)`) - but if it understands the object points to a null pointer, it doesn't provide anything to the node trying to get a value from it but jumps to next instruction directly.
