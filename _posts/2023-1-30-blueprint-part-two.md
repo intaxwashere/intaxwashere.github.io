@@ -65,7 +65,7 @@ You're right! Blueprints let you abuse the potentials and ignore the correct pro
 
 For example, lets say you have a node like this:
 
-![Printing the Falcon's launch codes in editor.](/assets/images/per-post/blueprint-part-two/launch-code-print.png)
+![Printing the Falcon's launch codes in editor.](/assets/images/per-post/blueprint-performance/launch-code-print.png)
 
 (put a print string connected with pure nodes and self context)
 
