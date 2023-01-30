@@ -10,7 +10,7 @@ tags:
   - Blueprints
 ---
 
-In this article, I'm going to explain how Blueprints works behind the scenes *again*, but this time I'll be a little bit more technical. 
+In this article, I'm going to explain how Blueprints work behind the scenes *again*, but this time I'll be a little bit more technical. 
 
 In previous article we mentioned common myths, how graph system works, what kind of interpreter Blueprints has and how Blueprints are translated into bytecode. In this second part of the article, we're going to ignore the beginners and high-level systems, but focus on questions like:
 
