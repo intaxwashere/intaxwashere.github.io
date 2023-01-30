@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Discoring Blueprint VM (Part 2)"
+title: "Discovering Blueprint VM (Part 2)"
 excerpt: We will go through the compilation step of the Blueprints with more technical details.
 header:
   teaser: /assets/images/per-post/blueprint-performance/bluemans-bp-horror.png
@@ -40,7 +40,7 @@ Nice question. A bytecode only describes a single "instruction" that is going to
 
 Blueprint statements are generated from node graph, heavily relying on the pins that your nodes provide to the blueprint compiler. They contain the information of what is connected to the pins, literal values, default values, which native/blueprint function the node calls when it's executed, and *other data structures to make blueprint compilation with various hacks*. The struct represents a compiled statement is the `FBlueprintCompiledStatement`.
 
-**Statements cause multiple bytecodes to be written into `FScriptBuilderBase`.** At this point, the serialization process boils down into the most evil and scary file, the `"UObject/ScriptSerialization.h"`. I honestly would like to provide more info about what the hell is happening inside of that file, I guess it's mostly platform specific/relevant stuff - but my knowledge is mostly limited with Unreal Engine and I believe this process is Unreal Engine specific one. So it'll stay as mystery until someone else that knows lets us know! :D
+**Statements cause multiple bytecodes to be written into `FScriptBuilderBase`.** At this point, the serialization process boils down into the most evil and scary file, the `"UObject/ScriptSerialization.h"` (it's saving/loading (both, FArchive style) inline data in an array of bytes). This file is pretty much a tech debt from Unreal Engine 3 and probably predates C++11. Entire file more or less is about putting inline constants into bytecode - it just has extra handling for FText translations, pointers, etc. 
 
 **But**... That's just the *serialization* part. How a virtual machine works and what bytecode is still same - even though many hacks and weird stuff happening to compile a node-based graph for an interpreter. 
 
