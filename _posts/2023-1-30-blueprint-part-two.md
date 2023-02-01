@@ -100,6 +100,8 @@ But of course, there are things I can add. From most obvious one to possibly les
 - Each time a node is executed output params must be looped and initialized to their values
 - VM back end is a branchy horror and full of Unreal-specific implementations 
 - [UnrealScript (UE3) was also very slow](https://twitter.com/TimSweeneyEpic/status/1211538643426447360?s=20&t=LrTG5-G2WZlnGHXbinZUgA).
+- VM dispatches function pointers instead of implementing main interpreter loop in a switch/case statement like traditional VMs.
+- The booleans added to blueprint graph (not the ones derive from a native class) are packed together as bitfields, and to assign booleans VM sacrifices runtime performance for such an unnecessary memory optimization. (see `DEFINE_FUNCTION(UObject::execLetBool)`)
 
 There are.. *some sort of* constant folding optimization happens with `InlineGeneratedValue` logic - which makes Math Expressions run faster, but it's very limited. Also there is a fast-call optimization exist which is described as `Call Math` in the backend but it happens for non-math related nodes too. 
 
