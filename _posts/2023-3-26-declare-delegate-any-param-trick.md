@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Declaring non-multicast delegates with N (any) amount of parameters."
+title: "Declaring non-dynamic delegates with N (any) amount of parameters."
 excerpt: No more _OneParam or _TwoParams etc. bullshit
 header:
   teaser: 
@@ -10,7 +10,11 @@ tags:
   - cpp
 ---
 
-Macros below allow you to declare delegate types without manually typing param count for them:
+Since dynamic macros are part of reflection system, they rely on different mechanism, but there is no actual reason why we use `_OneParam`, `_TwoParams` etc. on non-dynamic delegates.
+
+If you don't know what are delegates or not sure how to use them properly, I can recommend having a further read from [benui's awesome article here.](https://benui.ca/unreal/delegates-intro/)
+
+These macros below allow you to declare delegate types without manually typing param count for them:
 
 ```c
 #define DECLARE_DELEGATE_AnyParam(DelegateName, ...) \
