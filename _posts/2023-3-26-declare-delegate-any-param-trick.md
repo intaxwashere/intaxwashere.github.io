@@ -59,5 +59,14 @@ Here is an example:
 // if we have a function signature like this:
 virtual int32 AnimeGirlsAreReal(const float X, double& Y, const TArray<FVector>& Z);
 // this delegate would be compatible with the function above:
-using AnimeGirlsAreRealDelegate = TDelegate<int32(const float, double&, const TArray<FVector>&)>
+using FAnimeGirlsAreRealDelegate = TDelegate<int32(const float, double&, const TArray<FVector>&)>
+
+// example usecase:
+void SomeFunction()
+{
+  FAnimeGirlsAreRealDelegate MyDelegate;
+  TArray<FVector> MyVectorArray;
+  double OutDouble;
+  MyDelegate.Execute(1.f, OutDouble, MyVectorArray);
+}
 ```
