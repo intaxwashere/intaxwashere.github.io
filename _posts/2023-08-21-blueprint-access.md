@@ -23,25 +23,25 @@ If you're new to Unreal Engine and trying to hack your way around to manipulate 
 
 ## Reflection
 
-Unreal Engine has a "reflection" system to allow different systems interact with class amd property metadatas of UObjects. We can say design of reflection system is probably inspired from C#.
+Unreal Engine has a "reflection" system to allow different systems to interact with class amd property metadatas of UObjects. We can say the design of this reflection system is probably inspired by C#.
 
-Most base class of reflection system is a `FField`, which defines a... field in reflection system. A field is sereializable, can provide references to GC, can be loaded from disk and contains metadata of the field it's reflecting.
+The most base class of the reflection system is a `FField`, which defines a... field in the reflection system. A field is serializable, can provide references to GC, can be loaded from disk and contains metadata of the field it's reflecting.
 
-What we're more interested in is, a `FProperty`, which is derived from `FField` and extends it's functionalities to *describe* a "variable" in reflection system. Basically for each variable you have in a UCLASS/USTRUCT, engine will generate a FProperty behind the scenes that describing what kind of a variable it is. 
+What we're more interested in is `FProperty`, which is derived from `FField` and extends its functionalities to *describe* a "variable" in the reflection system. Basically for each variable you have in a UCLASS/USTRUCT, the engine will generate a FProperty behind the scenes that describes what kind of a variable it is. 
 
-A `UStruct` (not `USTRUCT()`!) is the most base class of a *container* for `FProperty`. `UScriptStruct` (`USTRUCT()`s), `UClass` (`UCLASS()`s) and `UUserDefinedStruct`s are derived from `UStruct`. A `UStruct` contains linked list of `FProperty`'s which get linked when `UStruct` itself get loaded. When a `UStruct` is loaded, it also loads the `FProperty`'s its referencing/containing if they aren't already. This is also the reason why having hard references cause engine to load the referenced objects.
+A `UStruct` (not `USTRUCT()`!) is the most base class of a *container* for `FProperty`. `UScriptStruct` (`USTRUCT()`s), `UClass` (`UCLASS()`s) and `UUserDefinedStruct`s are derived from `UStruct`. A `UStruct` contains linked list of `FProperty`'s which get linked when the `UStruct` itself get loaded. When a `UStruct` is loaded, it also loads the `FProperty`'s it's referencing/containing if they aren't already loaded. This is also the reason why having hard references causes the engine to load the referenced objects.
 
 `FProperty` contains a few virtuals that help us a lot to interact with them:
 
-- `InitializeValue_InContainer`: Initializes the value in given memory block. For example, if we have a `FDoubleProperty`, we would need to provide a 4 bytes of memory block, and it would memzero it. Because engine always initialize primitives to their zero values. But if we had a `FStructProperty`, it would go through its own metadata based on what kind of initialization is should do. For native structs, pointer to their default constructor is being called. For blueprint structs, their members is being looped and their own initialize functions getting called recursively.
+- `InitializeValue_InContainer`: Initializes the value in the given memory block. For example, if we have a `FDoubleProperty`, we would need to provide a 4 bytes of memory block, and it would memzero it. Because the engine always initializes primitives to their zero values. But if we had a `FStructProperty`, it would go through its own metadata based on what kind of initialization it should do. For native structs, the pointer to their default constructor is being called. For blueprint structs, their members are loopd over and their own initialize functions get called recursively.
 - `CopyValue_Internal`: Copies the value from *source* to *destination*. For primitives this is merely a `memcpy` by default. 
 - `DestroyValue_Internal`: Destroys the value in the memory block you provided. Primitives perform a memzero, while structs call destructor.
 
-### What kind of a memory block I should provide?
+### What kind of memory block should I provide?
 
-The thing is, the most important part of `FProperty` to function is an integer member variable called `Offset_Internal`. We'll have to go through how pointer arithmetic works in C++ here to understand why this is very important for `FProperty` to provide to us.
+The thing is, the most important part of `FProperty` to function is an integer member variable called `Offset_Internal`. We'll have to go through how pointer arithmetic works in C++ here to understand why it is very important for `FProperty` to provide it to us.
 
-Let's say we have a struct contains three integer values:
+Let's say we have a struct containing three integer values:
 ```c
 struct FThreeIntegers
 {
@@ -53,24 +53,24 @@ private:
 ```
 As you can see since I'm an evil person I hid them behind `private` so you wont be able access them. 
 
-Lets construct this struct in `AEvilActor::BeginPlay`:
+Let's construct this struct in `AEvilActor::BeginPlay`:
 ```c
 virtual void BeginPlay() override
 {
     FThreeIntegers MyStruct;
 }
 ```
-right now, C++ created a local struct named `MyStruct`, and it *contiguously* allocated its variables in the memory. Which means, the after the memory address of where is `MyStruct` allocated, it's member variables is also allocated.
+Right now, C++ created a local struct named `MyStruct`, and it *contiguously* allocated its variables in the memory. Which means, that after the memory address of where is `MyStruct` allocated, it's member variables are also allocated.
 
-So how this "pointer arithmetic" works is, if we would get the adress of `MyStruct`, we would actually get the address of `X`. Because structs and classes are merely "arguments" for compiler to how to construct a bunch of variables and other metadata like vtable etc. on memory. If you would get the address of `X` and add `4` to it, you would get the adress of `Y`. Because since integers are 4 bytes and C++ allocated our struct's memory contigously, `&MyStruct + 4` should point to the 2nd variable in our struct.
+So how this "pointer arithmetic" works is: if we would get the address of `MyStruct`, we would actually get the address of `X`. Because structs and classes are merely "arguments" for the compiler on how to construct a bunch of variables and other metadata like vtable etc. in memory. If you would get the address of `X` and add `4` to it, you would get the address of `Y`. Because since integers are 4 bytes and C++ allocated our struct's memory contigously, `&MyStruct + 4` should point to the 2nd variable in our struct.
 
-Each `FProperty`, either with some black magic BP compiler does or with UHT, is able to access the relative offset of the member variables in classes and structs. So this allows us to access the *current* value of the members in classes without directly using their types. 
+Each `FProperty`, either with some BP compiler black magic or with UHT, is able to access the relative offset of the member variables in classes and structs. This allows us to access the *current* value of the members in classes without directly using their types. 
 
-A small cool note, since we told structs and classes are merely arguments for compiler to how to constructs data contigously, actually Blueprint structs and classes are the same. They construct bunch of variables contigously on top of the memory their native counterparts allocated.
+A small cool note, since we mentioned structs and classes are merely arguments for the compiler on how to construct data contigously, actually Blueprint structs and classes are the same. They construct a bunch of variables contiguously on top of the memory their native counterparts allocated.
 
-Basically, based on this theory we just discussed, the memory block we should provide to `FProperty` while using it's utils should be the owner object *instance* of the FProperty. When we do `NewObject` or spawn an actor, it gets constructed on heap. And since we already have to work with pointers when it comes to `UObject`s, all we need to do is to pass the living instance of the object to initialize/copy/destroy the properties. 
+Basically, based on this theory we just discussed, the memory block we should provide to `FProperty` while using its utils should be the owner object *instance* of the FProperty. When we do `NewObject` or spawn an actor, it gets constructed on the heap. And since we already have to work with pointers when it comes to `UObject`s, all we need to do is to pass the living instance of the object to initialize/copy/destroy the properties. 
 
-Dont forget, a FProperty is just a static data that ***describes*** a property in a class or a struct. It doesnt represent an alive memory itself. It knows how to do operations on the memory block you provide, and it's virtual functions allows it to perform different behaviors based on the `FProperty` type.
+Don't forget, a FProperty is just a static data that ***describes*** a property in a class or a struct. It doesn't represent the memory of the variable value itself. It knows how to do operations on the memory block you provide, and its virtual functions allows it to perform different behaviors based on the `FProperty` type.
 
 ### Receiving or setting values of Blueprint properties
 
@@ -79,9 +79,9 @@ Since we know what of kind of a memory magic goes on behind the scenes, we can f
 To receive the `FProperty` itself, you either use 
 
 - `UClass::FindProperty`
-- or `TPropertyIterator`, which does exactly waht FindProperty does but more useeful in case you need a different control flow over the property linked-list loop. 
+- or `TPropertyIterator`, which does exactly what FindProperty does but more useeful in case you need a different control flow over the property linked-list loop. 
 
-After you receive the `FProperty`, have its either `UObject` or a `USTRUCT()` instance, and use them like this:
+After you receive the `FProperty`, get either the `UObject` or `USTRUCT()` instance, and use them like this:
 ```c
 float CopyOfMyFloatInObject;
 Property->GetValue_InContainer(MyObjectInstance, &CopyOfMyFloatInObject);
@@ -89,16 +89,16 @@ Property->GetValue_InContainer(MyObjectInstance, &CopyOfMyFloatInObject);
 float ValueToSet = 42.42f;
 Property->SetValue_InContainer(MyObjectInstnace, &ValueToSet);
 ```
-You will see some sources or community recommends `ContainerPtrToValue` function, but with the new 5.1 update, the functions above provide functionality to call `BlueprintSetter` and `BlueprintGetter` functions. So in case you don't need to raw value itself prefer them over `ContainerPtrToValue`. 
+You will see some sources or communities recommend `ContainerPtrToValue` function, but with the new 5.1 update, the functions above provide functionality to call `BlueprintSetter` and `BlueprintGetter` functions. So in case you don't need the raw value itself, prefer them over `ContainerPtrToValue`. 
 
 Here's a usecase nevertheless:
 ```c
 // get
-float CopyOfMyFloatInObject  *(Property->ContainerPtrToValue<float>(MyObjectInstance));
+float CopyOfMyFloatInObject  *(Property->ContainerPtrToValue<float>((void*)MyObjectInstance)); // cast to void* because the overload takes UObject* serves another purpose
 
 // set
 float ValueToSet 42.42f;
-float* PtrToActualValue = (Property->ContainerPtrToValue<float>(MyObjectInstance));
+float* PtrToActualValue = (Property->ContainerPtrToValue<float>((void*)MyObjectInstance));
 *PtrToActualValue = ValueToSet;
 ```
 
