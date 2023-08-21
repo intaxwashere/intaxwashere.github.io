@@ -25,7 +25,7 @@ If you're new to Unreal Engine and trying to hack your way around to manipulate 
 
 Unreal Engine has a "reflection" system to allow different systems interact with class amd property metadatas of UObjects. We can say design of reflection system is probably inspired from C#.
 
-Most base class of reflection system is a `FField`, which defines a.. uh.. field in reflection system. A field is sereializable, can provide references to GC, can be loaded from disk and contains metadata of the field it's reflecting.
+Most base class of reflection system is a `FField`, which defines a... field in reflection system. A field is sereializable, can provide references to GC, can be loaded from disk and contains metadata of the field it's reflecting.
 
 What we're more interested in is, a `FProperty`, which is derived from `FField` and extends it's functionalities to *describe* a "variable" in reflection system. Basically for each variable you have in a UCLASS/USTRUCT, engine will generate a FProperty behind the scenes that describing what kind of a variable it is. 
 
