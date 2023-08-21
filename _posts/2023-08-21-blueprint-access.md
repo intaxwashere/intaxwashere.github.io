@@ -12,7 +12,7 @@ tags:
 
 Hello people! 😊
 
-Today I want to explain a way to interact with Blueprint properties from C++.
+Today I want to explain a way to interact with Blueprint properties from C++. But before starting, thanks a lot to [Dieter](https://tackytortoise.github.io/) for fixing grammar errors in this article.
 
 If you're trying to do this, you're either:
 
