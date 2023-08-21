@@ -10,8 +10,6 @@ tags:
   - Reflection
 ---
 
-# How to interact with Blueprint properties from C++
-
 Hello people! 😊
 
 Today I want to explain a way to interact with Blueprint properties from C++.
