@@ -94,11 +94,11 @@ You will see some sources or communities recommend `ContainerPtrToValue` functio
 Here's a usecase nevertheless:
 ```c
 // get
-float CopyOfMyFloatInObject  *(Property->ContainerPtrToValue<float>((void*)MyObjectInstance)); // cast to void* because the overload takes UObject* serves another purpose
+float CopyOfMyFloatInObject  *(Property->ContainerPtrToValue<float>(MyObjectInstance));
 
 // set
 float ValueToSet 42.42f;
-float* PtrToActualValue = (Property->ContainerPtrToValue<float>((void*)MyObjectInstance));
+float* PtrToActualValue = (Property->ContainerPtrToValue<float>(MyObjectInstance));
 *PtrToActualValue = ValueToSet;
 ```
 
