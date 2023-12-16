@@ -26,38 +26,44 @@ But before going through myths, let's examine how Blueprints virtual machine act
 
 # Understanding the infastracture of Blueprint system.
 
-Blueprints is a visual and *interpreted* language that is implemented on top of Unreal Engine 3's UnrealScript virtual machine. As today's date, it outperforms old UnrealScript VM, but also shares most of the limitations of it, like not being able to expose arrays of arrays to reflection system. (Yes, that's why you can't have arrays of arrays directly in Blueprints.)
+Blueprints is a visual and *interpreted* language that is implemented on top of Unreal Engine 3's UnrealScript virtual machine. As today's date, it outperforms old UnrealScript VM, but also shares most of the limitations of it, like not being able to expose arrays of arrays to reflection system and lack of support of various types from natively supported property system.
 
-If you are a programmer, when you go through `UnrealTypes.h`, `CodeGenerator.h` and `Object.h` in source code, you can see the legacy comments in the code that implies reflection types are actually sharing tech debts from old Unreal Engine 3 code.
-
-Also another proof, a slideshow from Epic, presented in 2014 to developers:
-
-![Slideshow from 2014.](/assets/images/per-post/blueprint-performance/ue-tech-debt-sucks.png)
+![Slideshow from 2014, Epic says Blueprints is running on UnrealScript VM.](/assets/images/per-post/blueprint-performance/ue-tech-debt-sucks.png)
 
 [Source](https://www.slideshare.net/GerkeMaxPreussner/east-coast-devcon-2014-game-programming-in-ue4-game-framework)
 
-## Compiled languages vs. interpreted languages
+If you are a programmer, when you go through `Stack.h`, `ScriptCore.cpp`, `UnrealTypes.h`, `CodeGenerator.h` and `Object.h` in source code, you can see the legacy comments in the code that implies reflection types are actually sharing tech debts from old Unreal Engine 3 code.
 
-Since Blueprints is an interpreted language, we need to understand it's difference from others:
+## Meet the magic called "bytecode"!
 
-- Compiled languages (C/C++, Rust, Erlang) are converted into machine code directly, so they end up being faster than interpreted languages by skipping the "interpretation" step (which also introduces many other steps, as every language has a different way to interpret the code), but they have a "build" step that happens *offline*. Which means developer has to compile the code everytime when they make a change before running the code.
-- Interpreted languages (Java, Python, Blueprints) are not compiled into machine code directly but and include an intermediate program (interpreter) that runs the code *line by line* and executes it in different ways.
+First of all, I want you, dear reader, to understand langues has "back-ends" and "front-ends". Front-end, in this context, refers to user-facing side of the language. You can think of a programming language's syntax, rules and grammar when I say front-end. Meanwhile, back-end refers to the abstract machine that runs the actual logic that your code is compiled into.
 
-Basically compiled languages introduce a program named "compiler" that translates human readable code into machine code *before* you execute it, and interpreters introduce another concept named "interpreter" and converts your code into something else that main program can execute *at runtime*. 
+Blueprints, as we mentioned above, is running on a very old abstract machine that we call "virtual machine" that is written around late 1990s by Tim Sweeney himself. 
+
+Unreal's script solutions, until Verse is announced, always ran on the same virtual machine, but in different forms. Based on a tweet by Tim Sweeney, first Unreal had a Visual Basic style of syntax, then it evolved into a C-like language with operator overloads and such, and in the end, after Epic decided to kill UnrealScript, it became a visual scripting system. 
+
+The operations Blueprints virtual machine can execute is called ***bytecode***. A bytecode defines an execution that a virtual machine can execute. Blueprints VM can call functions, set values to each other, can jump into different paths of code (i.e. the Branch node), can run recursive code (loops) and do many other esoteric stuff that you don't need to know.
+
+A compiler is responsible of compiling the user facing format into bytecode that virtual machine can run. Blueprints compiler, reads all of your nodes that you placed into graph and converts them into bytecode. 
+
+Some other languages, like C++, Rust and Erlang compile into machine code rather than bytecode. This makes them faster to run, because, essentially, a virtual machine is a code that is written in an already existing language that "acts like" CPU. Just like virtual machines, our CPUs also has predefined instructions that they can run. But since they directly run on hardware, it's way more faster than evaluating bytecode in a programming language's boundaries.
+
+So why we are using bytecode then, instead of compiling Blueprints into machine code? Because it's not that easy! 😄
+
+"Compiled languages", unlike "interpreted languages" like Blueprints that run inside of virtual machines takes too long to compile and often very difficult to provide a managed environment where accessing a null variable doesn't crash your whole program immediately. 
+
+You also have the benefit of being able to compile your code in milliseconds and run it directly, without bothering other layers of processes compiled languages introduce. 
 
 ### How are Blueprints interpreted?
 
-The Blueprint System is quite complex and difficult to understand. It may require a Ph.D. in scripting languages. 😄
-
-There is a deep relation between multiple complex frameworks like garbage collector, blueprint graph, `UObject`, `UClass`, `UBlueprint` systems etc.
+There is a deep relation between multiple complex frameworks like garbage collector, blueprint graph, `UObject`, `UClass`, `UBlueprint` classes etc.
 
 But to explain things simply:
 
-- The Blueprint Graph acts like a *container* for blueprint nodes.
-- Everything contained in a Blueprint (event graphs, function graphs and macros) is combined into single graph after compilation.
-- Each blueprint node is a K2Node (default function nodes are `UK2Node_CallFunction`s that generated by engine) and every K2Node can provide information as to how it's going to be compiled into bytecode. For example, the `Sequence` node has different behavior in shipping builds vs PIE. In shipping, it's combined into single linear execution pin to eliminate extra instructions on the Blueprint VM.
+- The Blueprint Graph acts like a *container* for blueprint nodes, it's our "front-end" that is exposed to us when we're coding in Blueprints.
+- Everything contained in a Blueprint (event graphs, function graphs and macros) is combined into single graph after compilation. This is called "uber graph" in source code.
+- Each blueprint node is a K2Node and every K2Node can provide information as to how it's going to be compiled into bytecode. The nodes we use to call functions, the branch node, the cast node, they all have custom code in C++ side to define the behavior of the code you're writing in blueprints. If you're programmer, definitely look at `UK2Node::ExpandNode` function if you're interested in details.
 - When you press compile button in a Blueprint graph, the Blueprint compiler generates bytecode for your Blueprint nodes and the engine then executes your code by going through that bytecode.
-- There is a special method for handling math operations for better performance. Specifically with the `Math Expression`s where you can get up to 2x more performance. Nevertheless, at the end of the day the engine is still going to be executing bytecode instructions.
 
 If you are curious, you can see the generated bytecode in *human readable* format, by putting these lines into your DefaultEngine.ini and check your output log after compiling your blueprint:
 ```
@@ -66,40 +72,43 @@ CompileDisplaysBinaryBackend=True
 ```
 What you'll see wont be "exact" bytecode format engine generates, but a version of it that transpilated into something human readable. 
 
-You can see the all possible instructions blueprint compiler can generate as bytecode in `EKismetCompiledStatementType` which is defined in `BlueprintCompilerStatement.h`.
+### Blueprints is essentially something like a "machine" that calls C++ code.
 
-## Blueprints is essentially something like a "machine" that calls C++ code.
+Majority of the interpreted languages in the software industry will try to act like a CPU as much as it's possible. But Blueprints VM is rather like a "function caller", instead of a proper VM that mocks CPU.
 
-The Blueprint System is actually an *embedded* scripting language like Lua. It has a deep relationship with reflection system and UObject framework.
+When you write your code in blueprints graph, if you take it as a whole and analyze it, you will see at least around 95% of it is just making calls to native functions or the blueprint functions you wrote. You will see other languages, like javascript has quirky "deoptimization" penalties when you write your code in different forms, even though sometimes they evaluate to same result. This is because their front-end, as a text-based language is more expressive than a graph that you put nodes and connect them to each other. 
 
-### TL;DR Embedded languages 101:
+But this is not the case in Blueprints, since we're mostly limited with a few nodes that has the ability to control the execution flow of our code and rest of the nodes are simply calling all about calling functions.
 
-- Embedded languages provide an API that can be integrated into target application. So embedded languages interact with the *host* program (like game engine, in our case)
-- *In theory* any language can be embedded into an application (like a game engine, in our case) but some languages are specifically designed to make this process easier.
-- The more complex the language, the more it's difficult to embed it to an application. Lua is a great example for easy-to-embed languages. It's lightweight as possible and very easy to interact with.
-- Blueprints specifically designed to interact with Unreal Engine source code, and it runs on top of the core systems of it as an embedded language.
+While this is a bit limiting, this is also what makes Blueprints VM is very comprehensive. If we would want to compile another language's front-end into Blueprints bytecode, this would be pretty easy (relative to other dark stuff involved in programming language development). Early prototype of Verse was also compiled into Blueprints VM!
 
-### So what does that mean?
+So, what I'm trying to say is, BPVM only has one *meaningful* overhead, and it's "*calling functions*"!..
 
-Like every other language, the Blueprint System has a specific goal in mind; make the developer's life easier. Epic Games main focus was to involve artists into the development process by having a "visual" scripted language. Visuals, something artists are really good at. They wanted to provide developers an ecosystem where they can both use C++ and their new visual scripting system efficiently.
+We'll see more in detail below.
 
-So since it's an embedded language, it can interact with Unreal Engine's existing frameworks and at the simplest level, that's exactly what it's doing. That's why I always tend to think it's nothing but a system that simply calls C++ code.
+### Some fun facts before we dive into deeper topics
 
-If you ignore everything about Blueprints, you can still see Unreal Engine has a UObject framework with an abstract reflection system that you can build on top of. So to interact with Unreal Engine, you need to build a scripting language that can access *that* framework. And that's what Blueprints are doing. The Blueprint VM, in fact, allows you to implement *any other* scripting language on top of it's abstract implementation. [You can see Hazelight's AngelScript implementation as an example](https://angelscript.hazelight.se/).
+- First name of the node based visual scripting system was Kismet and it's still referenced as it is in the source code instead of".
 
-Understanding this fact will help you understand what I mean by a "machine" that calls C++ code.
+- Some *base* ideas of Verse still inherits concepts from how Blueprints virtual machine's design, like "persistent memory" system and latent nature of the language.
 
-# Performance of Blueprints.
+- Whole implementation of Blueprints virtual machine can be found in `Stack.h` and `ScriptCore.cpp`.
+
+- Default function nodes are `UK2Node_CallFunction`s that generated by engine and you can override it to implement your own "function call-like" node.
+
+# Performance of Blueprints (Direct overheads vs indirect overheads)
 
 The Blueprint System has "direct" and "indirect" overheads. 
 
-**There is only one "direct" overhead:**
+Direct overheads refer to overhead that is generated by base execution implementations of the virtual machine, while indirect overheads are caused by Blueprints' compilation model. 
 
-## Function calls (node evaluation). 
+## There is only one direct overhead Function calls (node evaluation). 
 
 Everytime the Blueprint VM evaluates a function, it just runs a code to invoke the C++ function. And even if you have a function/event you created in Blueprint graph, you just end up calling functions declared in C++ inside of it. When you start up a fresh project in launcher, every existing function you can add to blueprint graph is defined in C++. The Events that are automatically added to graph when you create a new Blueprint class, like `BeginPlay`, `Tick`, `OnBeginOverlap` are also actually C++ functions called by engine.
 
-[Every function "call" has the same exact overhead](https://youtu.be/j6mskTgL7kU?t=1144). Behind the scenes, Blueprints VM runs same code to evaluate every node in the graph.
+[Every function "call" ALMOST has the same exact overhead](https://youtu.be/j6mskTgL7kU?t=1144). Behind the scenes, Blueprints VM runs same code to evaluate every node in the graph.
+
+In the video, Epic claims calling functions almost has the same overhead in Blueprints, but it's actually incorrect. The more parameters and the more complex/bigger types you have, the more it will be expensive to call a function. Don't let this info misguide you and try to optimize your way into reducing parameter counts in your functions though, that'd make very minimal effect on performance. Always focus on profiler results!
 
 If you are familiar with Python, you probably already know most of the common packages are actually written in different languages to provide faster execution speed. You might even see many people advise avoiding implementing data structure algorithms and using what packages provide. (i.e. like using `max()` or `min()` functions instead of looping through gigantic lists).
 
@@ -107,18 +116,20 @@ We can apply the same philosophy to Blueprints too. There are many operations th
 
 If you take a look at `Kismet Libraries` that is implemented in Unreal Engine's source code (the static helper functions for math, line traces, overlap checks etc) that's actually what Epic Games is trying to do. Handling expensive to run operations in C++ and letting user get away with single function call overhead in the Blueprints graph. Imagine having to loop through all possible overlaps and querying them in blueprints instead of using `Sphere Overlap by Actors`... It would be a terrible experience for your poor CPU! 😛 
 
+So, alongside with moving things into C++ during development as you need more performance, if you're not a programmer already, learning a few bits of C++ to at least offload some stuff from Blueprints to C++ side would be very helpful for you.
+
 ----
 
-Below, we are going to talk about "indirect" overhead of Blueprints.
+## Indirect overheads.
 
-## Pure nodes can be dangerous, because they are evaluated each time they're plugged to an input parameter.
+### Pure nodes can be dangerous, because they are evaluated each time they're plugged to an input parameter.
 
 There are two types of Blueprint functions: 
 
 - Impure nodes
 - Pure nodes
 
-### Impure Nodes
+**Impure Nodes**
 
 ![An impure function.](/assets/images/per-post/blueprint-performance/impure-node.png)
 
@@ -126,7 +137,7 @@ There are two types of Blueprint functions:
 - When impure nodes are evaluated, their outputs become local variables within the blueprint graph. So each time you call an impure function, Blueprint VM will create (hidden) local variables for each output parameter. So if any of the output params are connected to one of the next function's input parameters, BP VM will access the hidden local variable it created when that node was executed last and use it.
 - **If you have multiple output params that are expensive to copy (like multiple non-primitive types like vectors, rotator and custom structs), you should prefer using an impure function.**
 
-### Pure nodes
+**Pure nodes**
 
 ![A pure function.](/assets/images/per-post/blueprint-performance/pure-node.png)
 
@@ -137,59 +148,13 @@ There are two types of Blueprint functions:
 - **"Get" nodes of variables are also pure functions.**
 - **Use pure nodes with caution when you are in a loop body. Prefer to cache variables before running a loop and accessing the cached variables instead.**
 
-## Graphs
+### Parameter prepration and copy cost.
 
-There is a concept of "graphs" in the Blueprint system. 
+Each time you call a function, you trigger a chain of virtual calls that copy and initialize the parameters of the function inside of the VM.
 
-A graph is simply `UEdGraph` class in the Unreal Engine. [FlowGraph](https://github.com/MothCocoon/FlowGraph/) is a good open source plugin to learn about how to create custom graph editors in Unreal Engine.
+The dependency to virtual functions is one of the reasons what makes Blueprint VM is extremely slow.
 
-In a regular Blueprint class, every graph except the default event graph comes with the editor when you open it, is *editor-only*. During compilation, the Blueprint system combines every graph into single *Ubergraph*. 
-
-Each graph can have different rules; they can be read-only, they can allow or disable variables, timelines, latent tasks inside of them:
-
-- You can not add a new *event node* to a function graph, and you can not use latent nodes like `delay` inside of it. 
-- `Math Expression` graphs and Reference Viewer tool are a good example of read-only graphs.
-
-### Every graph is a different realm.
-
-- Behavior Tree Graph is a front-end user only graph that is actually a C++ container behind the scenes, at most simple level. 
-- Nodes added to Material Editor's Graph are collected by engine and converted into HLSL code whenever you press "Apply" button. 
-- Animation graphs provide a Finite State Machine system that works entirely different than other graphs, and it has a feature to run on another thread if you design it correctly.
-- I don't know about how Sound Editor Graphs work, but I wouldn't be surprised if it's also something similar to Behavior Tree Graphs.
-- **Blueprint Graphs are only graphs that are converted into bytecode.** 
-
-So we understand that a *graph* is something Unreal Engine framework provides developers to build things on top of it, to create a visual, node-based scripting system.
-
-But Blueprint graphs has some interesting features we need to talk about to dive into side-effects of the Blueprints system.
-
-### Collapsed Graphs and Macros
-
-Collapsed Graphs and Macros behave very similar, except macros can be instanced multiple times like functions (i.e. you can copy paste it safely around the graph). 
-
-A collapsed graph is just a user-facing utility that helps developers to organize their graphs better. Meanwhile macros are special nodes that have their context copied & pasted into the graph *during the Blueprint compilation process.* But they introduce two problems:
-
-- They are slowing down the compilation process, which may be neglible unless you have hundreds or thousands of them.
-- They can hide nodes behind a single node, so the Blueprint graph might look cute and innocent but it might be a gigantic sphagetti of nodes behind the scenes. A great example for this is `For Each Loop` macro. **The reason looping containers expensive in Blueprints is because the "for loop" is actually a set of Blueprint nodes and if you loop something too many times, the BP VM ends up evaluating too many nodes for a simple action.** For this reason, if you have a bottleneck in a specific Blueprint graph, it's always a good idea to convert Blueprint loops into C++ loops.
-
-See behind the scenes of `For Each Loop` and `Gate` macros:
-
-( to be added soon )
-
-Macros work best when: 
-
-- You have latent tasks but you need to use same code multiple times elsewhere.
-- Very simple actions like checking validity of something or checking a condition of something. (i.e. things like IsValid() macro and HasAuthority() macro)
-- [Flow control utils](https://landelare.github.io/2022/04/29/reverse-flip-flop.html)
-
-Collapsed graphs works best when:
-
-- When you have a complex event graph and you need to make it more readable and split code into pieces.
-
-## How input/output params of functions are being set behind the scenes.
-
-For each Blueprint Callable function, the engine generates a custom struct type in C++ (you can find this struct in `.generated.cpp` file after compilation). This struct contains every input and output variable of the function and whenever that function is called, the engine fills that struct with the values you provide and invokes the function in C++. 
-
-- **So each time you call a function, there is a cost of setting variables per input and output params.**
+- **Each time you call a function, there is a cost of setting variables per input and output params, even if nothing is connected to the pins.**
 - **However, with modern computers this is a cheap operation and almost NEVER a performance concern. Of course this also depends on how many inputs / outputs there are in that Blueprint function.**
 
 ### Setting a variable means "copying it".
@@ -235,21 +200,19 @@ There is a reason the Blueprint system is considered a *scripting* language. If 
 
 ### Make and Break nodes of structs
 
-For each struct you have in your project, Unreal Engine generates a default `Make` and `Break` nodes. These nodes aren't different from any other functions in terms of input/output param handling. So each time you use a `Break Hit Result` node you end up copying almost every variable in the hit result.
-
-But this should never be a concern, because I actually profiled the performance of a gigantic struct like `Break Hit Result` and results were relieving:
-
-`0.01ms per 350 node in Shipping`
+For each struct you have in your project, Unreal Engine generates a default `Make` and `Break` nodes. These nodes aren't different from any other functions in terms of input/output param handling. So each time you use a `Break Hit Result` node you end up copying almost every variable in the hit result, even though some of the pins are unused.
 
 # Myths
 
-## 1: Avoid tick, it's expensive.
+Now finally let's talk about myths of the Blueprints language!
+
+## Myth 1: Avoid tick, it's expensive.
 
 As explained above, the only direct overhead of Blueprints system is the function invoking overhead. A simple tick event won't destroy your performance on it's own, but the nodes connected to your tick event will run every frame and memory access to instructions can end up being way slower than C++ code. **Unless you are going to ship to low-end hardware like a PS4, you do not need to avoid tick in every situation.** Always profile your game in shipping config at the lowest hardware target you plan to release on.
 
 I wanted to provide data about overhead of executing a single empty tick node on lower hardware, but I don't have access to any low-end hardware to profile against. However, for what it's worth, I have *heard* calling around 300 empty tick nodes in a single frame costs around 1ms per frame. One way or another, try to never believe anything anyone says - except everything I just said in this post - unless you profile it yourself to see the performance with your own eyes.
 
-## 2: Use timers instead of tick.
+## Myth 2: Use timers instead of tick.
 
 [No. Click to see why.](https://www.reddit.com/r/unrealengine/comments/wq7cke/comment/ikltr2r/?utm_source=share&utm_medium=web2x&context=3)
 
@@ -259,7 +222,7 @@ Also don't forget the red square pin you are plugging an event to `Set Timer by 
 
 Though that doesn't mean you shoud always prefer tick for everything. There are times timers can be useful against tick, but you should not try to replace tick function with timers for performance reasons.
 
-## 3: Do not use cast, its expensive
+## Myth 3: Do not use cast, its expensive
 
 "Cast" itself is nothing but a fancy loop that goes through class hierachy data in reflection system. If the given class type is found in the loop, the engine does a C-style cast to given type (which is... literally free for CPU to execute) and returns a pointer to it.
 
@@ -267,7 +230,7 @@ The reason people say "cast is expensive" is, when you *reference* something in 
 
 So try not to have hard references to memory intensive blueprints in your graph instead of avoiding cast.
 
-## 4: Prefer interfaces instead of casting 
+## Myth 4: Prefer interfaces instead of casting 
 
 Interfaces are some sort of "[multiple inheritance](https://en.wikipedia.org/wiki/Multiple_inheritance)" thing and their existence is not meant to replace casts. 
 
@@ -275,7 +238,7 @@ An interface is a description of the actions that an object can do. For example 
 
 In fact, behind the scenes the engine actually does a cast to access the interface in given object. So people who are using interfaces because of this "Do not use cast" myth are actually not ending up avoiding any cast.
 
-## 5: Use timelines instead of tick
+## Myth 5: Use timelines instead of tick
 
 Each timeline node ends up being a component in your actor class and costs memory. They are great for evaluating curves and they also provide some cool inline curve editor that you can open and edit your curves inside of the actor's blueprint graph, but it has disadvantages too:
 
