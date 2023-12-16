@@ -36,7 +36,7 @@ If you are a programmer, when you go through `Stack.h`, `ScriptCore.cpp`, `Unrea
 
 ## Meet the magic called "bytecode"!
 
-First of all, I want you, dear reader, to understand langues has "back-ends" and "front-ends". Front-end, in this context, refers to user-facing side of the language. You can think of a programming language's syntax, rules and grammar when I say front-end. Meanwhile, back-end refers to the abstract machine that runs the actual logic that your code is compiled into.
+First of all, I want you, dear reader, to understand programming languages has "back-ends" and "front-ends". Front-end, in this context, refers to user-facing side of the language. You can think of a programming language's syntax, rules and grammar when I say front-end. Meanwhile, back-end refers to the abstract machine that runs the actual logic that your code is compiled into.
 
 Blueprints, as we mentioned above, is running on a very old abstract machine that we call "virtual machine" that is written around late 1990s by Tim Sweeney himself. 
 
