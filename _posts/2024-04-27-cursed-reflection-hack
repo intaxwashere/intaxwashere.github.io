@@ -1,7 +1,7 @@
 ---
 layout: single
 title: "How to add custom logic into engine classes without modifying source code of UE5"
-excerpt: Content warning.
+excerpt: Content warning
 header:
   teaser: 
 author: Meta
@@ -10,6 +10,7 @@ tags:
   - Reflection
   - Cursed
   - ContentWarning
+  - cpp
 ---
 
 Welcome to my another article where I explain another cursed black magic related with Unreal Engine's reflection system!
