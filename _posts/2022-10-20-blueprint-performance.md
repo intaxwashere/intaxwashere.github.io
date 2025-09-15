@@ -12,7 +12,7 @@ tags:
 
 Thanks a lot to [Bry](https://www.youtube.com/c/brynertoma) and [WizardCell](https://wizardcell.com/) for contributing to this article.
 
-You can see many people telling these innocent lies all over the place:
+You can see many people telling these innocent ***lies*** all over the place:
 
 - Avoid tick, it's expensive
 - Use timers instead of tick
@@ -32,21 +32,19 @@ Blueprints is a visual and *interpreted* language that is implemented on top of 
 
 [Source](https://www.slideshare.net/GerkeMaxPreussner/east-coast-devcon-2014-game-programming-in-ue4-game-framework)
 
-If you are a programmer, when you go through `Stack.h`, `ScriptCore.cpp`, `UnrealTypes.h`, `CodeGenerator.h` and `Object.h` in source code, you can see the legacy comments in the code that implies reflection types are actually sharing tech debts from old Unreal Engine 3 code.
-
 ## Meet the magic called "bytecode"!
 
-First of all, I want you, dear reader, to understand programming languages has "back-ends" and "front-ends". Front-end, in this context, refers to user-facing side of the language. You can think of a programming language's syntax, rules and grammar when I say front-end. Meanwhile, back-end refers to the abstract machine that runs the actual logic that your code is compiled into.
+Programming languages has "back-ends" and "front-ends". Front-end, in this context, refers to user-facing side of the language. You can think of a programming language's syntax, rules and grammar when I say front-end. Meanwhile, back-end refers to the abstract machine that runs the actual logic that your code is compiled into.
 
-Blueprints, as we mentioned above, is running on a very old abstract machine that we call "virtual machine" that is written around late 1990s by Tim Sweeney himself. 
+Blueprints, as we mentioned above, is running on a very old abstract machine that we call "virtual machine" that is written around 1998 by Tim Sweeney himself. 
 
 Unreal's script solutions, until Verse is announced, always ran on the same virtual machine, but in different forms. Based on a tweet by Tim Sweeney, first Unreal had a Visual Basic style of syntax, then it evolved into a C-like language with operator overloads and such, and in the end, after Epic decided to kill UnrealScript, it became a visual scripting system. 
 
-The operations Blueprints virtual machine can execute is called ***bytecode***. A bytecode defines an execution that a virtual machine can execute. Blueprints VM can call functions, set values to each other, can jump into different paths of code (i.e. the Branch node), can run recursive code (loops) and do many other esoteric stuff that you don't need to know.
+The instructions Blueprints virtual machine can execute is called ***bytecode***. A bytecode is an operation that a virtual machine can execute. Blueprints VM can call functions, set values to each other, can jump into different paths of code (i.e. the Branch node), can run recursive code (loops) and do many other esoteric stuff that you don't need to know.
 
 A compiler is responsible of compiling the user facing format into bytecode that virtual machine can run. Blueprints compiler, reads all of your nodes that you placed into graph and converts them into bytecode. 
 
-Some other languages, like C++, Rust and Erlang compile into machine code rather than bytecode. This makes them faster to run, because, essentially, a virtual machine is a code that is written in an already existing language that "acts like" CPU. Just like virtual machines, our CPUs also has predefined instructions that they can run. But since they directly run on hardware, it's way more faster than evaluating bytecode in a programming language's boundaries.
+Some other languages, like C++, Rust and Erlang compile into machine code rather than bytecode. This makes them faster to run, because, essentially, a virtual machine is a code that is written in an already existing language that "acts like" CPU. Just like virtual machines, our CPUs also has predefined instructions that they can run. But since they directly run on hardware, it's way more faster than evaluating bytecode in a different programming language's boundaries.
 
 So why we are using bytecode then, instead of compiling Blueprints into machine code? Because it's not that easy! 😄
 
@@ -60,27 +58,23 @@ There is a deep relation between multiple complex frameworks like garbage collec
 
 But to explain things simply:
 
-- The Blueprint Graph acts like a *container* for blueprint nodes, it's our "front-end" that is exposed to us when we're coding in Blueprints.
-- Everything contained in a Blueprint (event graphs, function graphs and macros) is combined into single graph after compilation. This is called "uber graph" in source code.
-- Each blueprint node is a K2Node and every K2Node can provide information as to how it's going to be compiled into bytecode. The nodes we use to call functions, the branch node, the cast node, they all have custom code in C++ side to define the behavior of the code you're writing in blueprints. If you're programmer, definitely look at `UK2Node::ExpandNode` function if you're interested in details.
-- When you press compile button in a Blueprint graph, the Blueprint compiler generates bytecode for your Blueprint nodes and the engine then executes your code by going through that bytecode.
-
-If you are curious, you can see the generated bytecode in *human readable* format, by putting these lines into your DefaultEngine.ini and check your output log after compiling your blueprint:
-```
-[Kismet]
-CompileDisplaysBinaryBackend=True
-```
-What you'll see wont be "exact" bytecode format engine generates, but a version of it that transpilated into something human readable. 
+- Blueprint graphs acts like *containers* for blueprint nodes, it's our "front-end" that is exposed to us when we're coding in Blueprints.
+  
+- Each blueprint node is represented as `UK2Node` class in C++ and every `UK2Node` can provide information as to how it's going to be compiled into bytecode. The nodes we use to call functions, the branch node, the cast node, they all have custom code in C++ side to define the behavior of the code you're writing in blueprints. If you're programmer, definitely look at `UK2Node::ExpandNode` function if you're interested in details.
+  
+- All nodes generate an "intermediate representation" called `Kismet Compiler Statement` through the `UK2Node` API.
+  
+- All `Kismet Compiler Statement` get compiled into bytecode and saved into the class/function data.
 
 ### Blueprints is essentially something like a "machine" that calls C++ code.
 
-Majority of the interpreted languages in the software industry will try to act like a CPU as much as it's possible. But Blueprints VM is rather like a "function caller", instead of a proper VM that mocks CPU.
+Majority of the interpreted languages in the software industry will try to act like a CPU as much as it's possible. But Blueprints VM is rather designed like a "function caller", instead of a proper VM or an interpreter that mimics CPU instructions.
 
-When you write your code in blueprints graph, if you take it as a whole and analyze it, you will see at least around 95% of it is just making calls to native functions or the blueprint functions you wrote. You will see other languages, like javascript has quirky "deoptimization" penalties when you write your code in different forms, even though sometimes they evaluate to same result. This is because their front-end, as a text-based language is more expressive than a graph that you put nodes and connect them to each other. 
+When you write your code in blueprints graph, if you take it as a whole and analyze it, you will see at least around 95% of it is just making calls to native functions or the blueprint functions you wrote. You will see other languages, like javascript has quirky "deoptimization" penalties when you write your code in different forms, even though sometimes they evaluate to same result. This is because their front-end, as a text-based language is more expressive than a graph that you put nodes and connect them to each other. Because their compiler transforms the code with deeper representations internally.
 
-But this is not the case in Blueprints, since we're mostly limited with a few nodes that has the ability to control the execution flow of our code and rest of the nodes are simply calling all about calling functions.
+But this is not the case in Blueprints, since we're mostly limited with a few nodes that has the ability to control the execution flow of our code and rest of the nodes are simply all about calling functions.
 
-While this is a bit limiting, this is also what makes Blueprints VM is very comprehensive. If we would want to compile another language's front-end into Blueprints bytecode, this would be pretty easy (relative to other dark stuff involved in programming language development). Early prototype of Verse was also compiled into Blueprints VM!
+While this is a bit limiting, this is also what makes Blueprints VM is very comprehensive. If we would want to integrate another language into Blueprints system, this would be pretty easy (relative to other dark stuff involved in this type of processes). Right now, at the date this article is written, Verse is also being compiled to Blueprints VM to run in UEFN!
 
 So, what I'm trying to say is, BPVM only has one *meaningful* overhead, and it's "*calling functions*"!..
 
@@ -88,13 +82,13 @@ We'll see more in detail below.
 
 ### Some fun facts before we dive into deeper topics
 
-- First name of the node based visual scripting system was Kismet and it's still referenced as it is in the source code instead of".
+- First name of the node based visual scripting system was "Kismet" and it's still referenced as it is in the source code instead of "Blueprints" most of the time.
 
 - Some *base* ideas of Verse still inherits concepts from how Blueprints virtual machine's design, like "persistent memory" system and latent nature of the language.
 
-- Whole implementation of Blueprints virtual machine can be found in `Stack.h` and `ScriptCore.cpp`.
+- When you execute a node in event graph, until the object is destroyed, all of the return pins preserve their original values. This concept is called "ubergraph frame" and required for latent nodes to work internally in the event graph. So, nothing in the event graph is local memory. Every pin is declared in the heap memory and their lifetime is bound to the owning object.
 
-- Default function nodes are `UK2Node_CallFunction`s that generated by engine and you can override it to implement your own "function call-like" node.
+- The "ubergraph frame" is a pseudo-struct (generated in runtime when object is spawned based on reflection data) that contains all nodes return and output parameters inside of it. And it is _technically_ part of the class memory - so as your event graph(s) grow, the total size of the object/class in the memory also grows. 
 
 # Performance of Blueprints (Direct overheads vs indirect overheads)
 
@@ -114,7 +108,7 @@ If you are familiar with Python, you probably already know most of the common pa
 
 We can apply the same philosophy to Blueprints too. There are many operations that you can implement in C++ to outperform Blueprint performance by 20x in regular gameplay code. The less nodes you have in a graph, the less instructions VM will have to execute. **So if you are after optimizing your blueprint code, the only thing you can do is reduce the amount of nodes to execute.** 
 
-If you take a look at `Kismet Libraries` that is implemented in Unreal Engine's source code (the static helper functions for math, line traces, overlap checks etc) that's actually what Epic Games is trying to do. Handling expensive to run operations in C++ and letting user get away with single function call overhead in the Blueprints graph. Imagine having to loop through all possible overlaps and querying them in blueprints instead of using `Sphere Overlap by Actors`... It would be a terrible experience for your poor CPU! 😛 
+If you take a look at `Kismet Libraries` that is implemented in Unreal Engine's source code (the static helper functions for math, line traces, overlap checks etc) that's actually what Epic Games is trying to do. Wrapping expensive to run operations in C++ and letting user get away with single function call overhead in the Blueprints graph. Imagine having to loop through all possible overlaps and querying them in blueprints instead of using `Sphere Overlap by Actors`... It would be a terrible experience for your poor CPU! 😛 
 
 So, alongside with moving things into C++ during development as you need more performance, if you're not a programmer already, learning a few bits of C++ to at least offload some stuff from Blueprints to C++ side would be very helpful for you.
 
@@ -201,6 +195,20 @@ There is a reason the Blueprint system is considered a *scripting* language. If 
 ### Make and Break nodes of structs
 
 For each struct you have in your project, Unreal Engine generates a default `Make` and `Break` nodes. These nodes aren't different from any other functions in terms of input/output param handling. So each time you use a `Break Hit Result` node you end up copying almost every variable in the hit result, even though some of the pins are unused.
+
+# Converting Blueprints to C++ auto-magically
+
+During the time I was writing this article I was developing my own Blueprint to C++ transpiler called **BP2CPP**. And unsurprisingly everything I wrote here was a byproduct of my ongoing research to how to accomplish something that is so complex and difficult even Epic Games gave up on their attempts with UE5.0.
+
+BP2CPP is "nativization made possible" - a plugin I created that works differently from the official one that got removed. 
+
+BP2CPP offers _up to_ ~15x faster execution speed compared to Blueprints VM, with the ability of converting all of your Blueprints to C++ with a single click and optionally through automation support so you don't have to click buttons everytime you ship your project.
+
+BP2CPP has no limitations regarding to usage of Blueprints, which means everything you can place to your graph is supported, including third party plugins and custom tooling as long as it gets compiled to Blueprints system.
+
+BP2CPP is not a dumb code generator, it's a complete badass transpiler with multiple optimization passes that makes the generated code runs extremely efficiently without ever modifying the original content or data of the Blueprints assets.
+
+Contact: https://zeroitlab.com/en/bp2cpp
 
 # Myths
 
