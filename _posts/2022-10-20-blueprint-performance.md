@@ -200,6 +200,8 @@ For each struct you have in your project, Unreal Engine generates a default `Mak
 
 During the time I was writing this article I was developing my own Blueprint to C++ transpiler called **BP2CPP**. And unsurprisingly everything I wrote here was a byproduct of my ongoing research to how to accomplish something that is so complex and difficult even Epic Games gave up on their attempts with UE5.0.
 
+So, allow me to advertise a bit 😇
+
 BP2CPP is "nativization made possible" - a plugin I created that works differently from the official one that got removed. 
 
 BP2CPP offers _up to_ ~15x faster execution speed compared to Blueprints VM, with the ability of converting all of your Blueprints to C++ with a single click and optionally through automation support so you don't have to click buttons everytime you ship your project.
@@ -208,7 +210,7 @@ BP2CPP has no limitations regarding to usage of Blueprints, which means everythi
 
 BP2CPP is not a dumb code generator, it's a complete badass transpiler with multiple optimization passes that makes the generated code runs extremely efficiently without ever modifying the original content or data of the Blueprints assets.
 
-Contact: https://zeroitlab.com/en/bp2cpp
+[Discover more.](https://zeroitlab.com/en/bp2cpp)
 
 # Myths
 
@@ -225,8 +227,6 @@ I wanted to provide data about overhead of executing a single empty tick node on
 [No. Click to see why.](https://www.reddit.com/r/unrealengine/comments/wq7cke/comment/ikltr2r/?utm_source=share&utm_medium=web2x&context=3)
 
 Also don't forget the red square pin you are plugging an event to `Set Timer by Event` is a dynamic delegate (event dispatcher, in BP terms) and it's expensive to call. 100 BP ticks vs 100 Dynamic Delegate invoking will end up in a result dynamic delegates causing more of overhead than BP ticks. 
-
-`Set Timer by Function Name` is even worse because engine will go through all blueprint callable events of your class to find the given function with the name so there is additional lookup time overhead compared to `Set Timer by Event`.
 
 Though that doesn't mean you shoud always prefer tick for everything. There are times timers can be useful against tick, but you should not try to replace tick function with timers for performance reasons.
 
